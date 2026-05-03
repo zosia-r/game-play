@@ -5,90 +5,97 @@ Every heuristic has the signature::
 
     heuristic(board, player) -> float
 
-and returns a value from the perspective of *player*:
+and returns a value from *player*'s perspective:
   positive  – position favours *player*
   negative  – position favours the opponent
-  0         – balanced position
+  0         – balanced
+
+Each player randomly picks one heuristic per move (see engine.py),
+so all three functions must remain self-contained and consistent.
 
 Available heuristics
 --------------------
-H0 – piece_count   : raw difference in piece counts
-H1 – advancement   : sum of forward progress of all pieces
-H2 – combined      : weighted mix of piece count, advancement, and mobility
+H0 – piece_count  : difference in total piece counts
+H1 – advancement  : sum of forward progress of all pieces
+H2 – combined     : weighted mix of piece count, advancement and mobility
 """
 
-from constants import PLAYER_B, PLAYER_W, WIN_SCORE, LOSS_SCORE
+import random
+
+from constants import PLAYER_W, PLAYER_B, WIN_SCORE, LOSS_SCORE
 from game import get_moves, check_winner
 
 
 # ── Individual heuristics ────────────────────────────────────────────────────
 
 def heuristic_piece_count(board: list[list[str]], player: str) -> float:
-    """H0: Difference in the number of pieces on the board.
+    """H0: Difference in the number of pieces remaining on the board.
 
-    Rewards having more pieces than the opponent.
-    Simple but ignores positional factors entirely.
+    A positive value means *player* has more pieces than the opponent.
+    Simple and fast; ignores piece positions entirely.
     """
-    b = w = 0
+    w = b = 0
     for row in board:
         for cell in row:
-            if cell == PLAYER_B:
-                b += 1
-            elif cell == PLAYER_W:
+            if cell == PLAYER_W:
                 w += 1
-    score = b - w
-    return score if player == PLAYER_B else -score
+            elif cell == PLAYER_B:
+                b += 1
+    score = w - b   # raw score from W's perspective
+    return score if player == PLAYER_W else -score
 
 
 def heuristic_advancement(board: list[list[str]], player: str) -> float:
-    """H1: Sum of forward progress of all pieces towards the winning edge.
+    """H1: Sum of forward progress of all friendly pieces toward the goal row.
 
-    Each piece contributes its row distance from the starting edge.
-    Encourages pushing pieces forward aggressively.
+    W's progress for a piece at row r  = (rows - 1 - r)  (closer to row 0 → higher)
+    B's progress for a piece at row r  = r                (closer to row rows-1 → higher)
+
+    Encourages aggressive forward movement.
     """
     rows  = len(board)
-    b_adv = w_adv = 0
+    w_adv = b_adv = 0
     for r, row in enumerate(board):
         for cell in row:
-            if cell == PLAYER_B:
-                b_adv += r                # B wants high row indices
-            elif cell == PLAYER_W:
-                w_adv += (rows - 1 - r)  # W wants low row indices
-    score = b_adv - w_adv
-    return score if player == PLAYER_B else -score
+            if cell == PLAYER_W:
+                w_adv += (rows - 1 - r)   # W moves toward row 0
+            elif cell == PLAYER_B:
+                b_adv += r                # B moves toward row rows-1
+    score = w_adv - b_adv
+    return score if player == PLAYER_W else -score
 
 
 def heuristic_combined(board: list[list[str]], player: str) -> float:
-    """H2: Weighted combination of piece count, advancement, and mobility.
+    """H2: Weighted combination of piece count, advancement and mobility.
 
     Weights:
-      2.0 × piece count difference
+      2.0 × piece-count difference
       1.0 × advancement difference
-      0.5 × mobility difference (number of legal moves)
+      0.5 × mobility difference (number of legal moves available)
 
-    Balances material advantage, positional progress and tactical flexibility.
+    Balances material advantage, positional progress and tactical options.
     """
     rows  = len(board)
-    b_cnt = b_adv = w_cnt = w_adv = 0
+    w_cnt = w_adv = b_cnt = b_adv = 0
 
     for r, row in enumerate(board):
         for cell in row:
-            if cell == PLAYER_B:
-                b_cnt += 1
-                b_adv += r
-            elif cell == PLAYER_W:
+            if cell == PLAYER_W:
                 w_cnt += 1
                 w_adv += (rows - 1 - r)
+            elif cell == PLAYER_B:
+                b_cnt += 1
+                b_adv += r
 
-    b_mob = len(get_moves(board, PLAYER_B))
     w_mob = len(get_moves(board, PLAYER_W))
+    b_mob = len(get_moves(board, PLAYER_B))
 
     score = (
-        2.0 * (b_cnt - w_cnt)
-        + 1.0 * (b_adv - w_adv)
-        + 0.5 * (b_mob - w_mob)
+        2.0 * (w_cnt - b_cnt)
+        + 1.0 * (w_adv - b_adv)
+        + 0.5 * (w_mob - b_mob)
     )
-    return score if player == PLAYER_B else -score
+    return score if player == PLAYER_W else -score
 
 
 # ── Registry ─────────────────────────────────────────────────────────────────
@@ -100,17 +107,24 @@ HEURISTICS: dict[int, callable] = {
 }
 
 HEURISTIC_NAMES: dict[int, str] = {
-    0: "Piece count (H0)",
-    1: "Advancement (H1)",
-    2: "Combined: piece count + advancement + mobility (H2)",
+    0: "H0 – piece count",
+    1: "H1 – advancement",
+    2: "H2 – combined (piece count + advancement + mobility)",
 }
+
+ALL_HEURISTIC_IDS: list[int] = list(HEURISTICS.keys())
+
+
+def pick_random_heuristic() -> int:
+    """Return a randomly chosen heuristic id from ALL_HEURISTIC_IDS."""
+    return random.choice(ALL_HEURISTIC_IDS)
 
 
 def evaluate(board: list[list[str]], player: str, heuristic_id: int) -> float:
-    """Return a terminal score or the heuristic estimate for *player*.
+    """Return a terminal score or a heuristic estimate for *player*.
 
-    Terminal states always return WIN_SCORE or LOSS_SCORE so the search
-    can distinguish forced wins/losses from heuristic estimates.
+    Terminal states always return ±WIN_SCORE so they are clearly
+    distinguishable from any heuristic estimate.
     """
     winner = check_winner(board)
     if winner == player:

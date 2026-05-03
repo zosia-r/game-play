@@ -1,59 +1,75 @@
 """
-Game loop for the basic version of Breakthrough.
+Game loop for Breakthrough (basic version).
 
-Both players are controlled by the Minimax agent using the same heuristic,
-so the first player's predictions about the opponent's responses are always
-accurate (symmetric play).
+Agent behaviour
+---------------
+Both players use the same search algorithm (Minimax or alpha-beta), but on
+every individual move each player independently picks one of the three
+evaluation heuristics at random.  This means:
+
+  - Neither player is locked into a single strategy throughout the game.
+  - The opponent's move cannot be perfectly predicted by the other player,
+    making the game less deterministic and more varied across runs.
+
+Turn order
+----------
+  Player W moves first (as per the task specification).
 """
 
-from constants import PLAYER_B, PLAYER_W
+import random
+
+import search as search_module
+from constants import PLAYER_W, PLAYER_B, ALGO_ALPHABETA
 from board import board_to_string
 from game import apply_move, check_winner
-from heuristics import evaluate, HEURISTIC_NAMES
-from search import choose_move, nodes_visited
-import search  # needed to reset the global counter
+from heuristics import evaluate, HEURISTIC_NAMES, pick_random_heuristic, ALL_HEURISTIC_IDS
 
 
 def play_game(
     board: list[list[str]],
     depth: int,
-    heuristic_id: int,
+    algorithm: str = ALGO_ALPHABETA,
     max_rounds: int = 200,
     verbose: bool = True,
 ) -> tuple[str, int, list[list[str]], tuple | None]:
-    """Run a full game between two Minimax agents.
+    """Run a complete game between two Minimax agents.
+
+    Each agent randomly selects one of the three heuristics before every move.
 
     Parameters
     ----------
-    board:        Starting board position.
-    depth:        Minimax search depth (applies to both players).
-    heuristic_id: Evaluation heuristic used by both agents.
-    max_rounds:   Safety limit on the number of half-moves (plies).
-    verbose:      Print move-by-move log to stdout.
+    board:       Starting board position.
+    depth:       Search depth limit (same for both players).
+    algorithm:   Search algorithm: 'minimax' or 'alphabeta'.
+    max_rounds:  Safety limit on the total number of half-moves (plies).
+    verbose:     Print a move-by-move log to stdout when True.
 
     Returns
     -------
     (winner, rounds, final_board, last_from)
-        winner      – 'B' or 'W'
-        rounds      – total number of half-moves played
-        final_board – board state at the end of the game
-        last_from   – (row, col) vacated by the last move, for 'o' display
+        winner      – 'W' or 'B'
+        rounds      – number of half-moves played
+        final_board – board state when the game ended
+        last_from   – (row, col) vacated by the final move, for 'o' display
     """
-    # Reset the global node counter before the game starts
-    search.nodes_visited = 0
+    search_module.nodes_visited = 0   # reset global counter
 
-    current   = PLAYER_B   # Player B always moves first
+    current   = PLAYER_W   # W always moves first
     rounds    = 0
     last_from = None
     winner    = None
 
     if verbose:
-        print("=" * 54)
-        print("BREAKTHROUGH  –  basic version  (Minimax + α-β)")
-        print(f"  Board      : {len(board)} × {len(board[0])}")
+        algo_label = "Minimax (plain)" if algorithm == "minimax" else "Minimax + α-β pruning"
+        print("=" * 56)
+        print("BREAKTHROUGH  –  basic version")
+        print(f"  Board      : {len(board)} rows × {len(board[0])} cols")
         print(f"  Depth      : {depth}")
-        print(f"  Heuristic  : {HEURISTIC_NAMES[heuristic_id]}")
-        print("=" * 54)
+        print(f"  Algorithm  : {algo_label}")
+        print(f"  Heuristics : random per move from "
+              f"{[HEURISTIC_NAMES[i] for i in ALL_HEURISTIC_IDS]}")
+        print(f"  First move : Player 1 (W)")
+        print("=" * 56)
         print("\nInitial position:")
         print(board_to_string(board))
         print()
@@ -63,12 +79,15 @@ def play_game(
         if winner:
             break
 
-        move = choose_move(board, current, depth, heuristic_id)
+        # Each player picks a heuristic at random for this move
+        heuristic_id = pick_random_heuristic()
+
+        move = search_module.choose_move(board, current, depth, heuristic_id, algorithm)
+
         if move is None:
-            # No legal moves – current player loses immediately
-            winner = PLAYER_W if current == PLAYER_B else PLAYER_B
+            winner = PLAYER_B if current == PLAYER_W else PLAYER_W
             if verbose:
-                label = "1 (B)" if current == PLAYER_B else "2 (W)"
+                label = "1 (W)" if current == PLAYER_W else "2 (B)"
                 print(f"Player {label} has no legal moves – loses.")
             break
 
@@ -78,18 +97,22 @@ def play_game(
         rounds   += 1
 
         if verbose:
-            label = "1 (B)" if current == PLAYER_B else "2 (W)"
-            print(f"Round {rounds:3d}  |  Player {label}  |  ({fr},{fc}) -> ({tr},{tc})")
+            label = "1 (W)" if current == PLAYER_W else "2 (B)"
+            h_name = HEURISTIC_NAMES[heuristic_id].split()[0]   # short label
+            print(
+                f"Round {rounds:3d}  |  Player {label}  "
+                f"|  ({fr},{fc}) -> ({tr},{tc})  "
+                f"|  heuristic: {h_name}"
+            )
 
-        current = PLAYER_W if current == PLAYER_B else PLAYER_B
+        current = PLAYER_B if current == PLAYER_W else PLAYER_W
 
     else:
-        # Round limit reached – declare winner by heuristic score
-        score  = evaluate(board, PLAYER_B, heuristic_id)
-        winner = PLAYER_B if score >= 0 else PLAYER_W
+        # Round limit – break tie with heuristic score
+        score  = evaluate(board, PLAYER_W, pick_random_heuristic())
+        winner = PLAYER_W if score >= 0 else PLAYER_B
         if verbose:
             print(f"\nRound limit ({max_rounds}) reached.")
 
-    # Refresh winner in case check_winner now detects a terminal state
     winner = check_winner(board) or winner
     return winner, rounds, board, last_from
