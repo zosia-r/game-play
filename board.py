@@ -20,25 +20,19 @@ def make_initial_board(rows: int = 8, cols: int = 8) -> list[list[str]]:
     board = [[EMPTY] * cols for _ in range(rows)]
 
     # black on top
-    for r in range(2):
-        for c in range(cols):
-            board[r][c] = PLAYER_B
+    for row in range(2):
+        for col in range(cols):
+            board[row][col] = PLAYER_B
 
     # white on bottom
-    for r in range(rows - 2, rows):
-        for c in range(cols):
-            board[r][c] = PLAYER_W
+    for row in range(rows - 2, rows):
+        for col in range(cols):
+            board[row][col] = PLAYER_W
 
     return board
 
 
 def board_to_string(board: list[list[str]]) -> str:
-    """Render the board as a multi-line string.
-
-    Parameters
-    ----------
-    board:      2-D list of cell symbols.
-    """
     lines = []
     for row in board:
         lines.append(" ".join(row))
