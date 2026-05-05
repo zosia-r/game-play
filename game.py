@@ -21,7 +21,7 @@ Victory conditions
   A player with no legal moves also loses.
 """
 
-from constants import PLAYER_W, PLAYER_B, EMPTY
+from config import PLAYER_W, PLAYER_B, EMPTY
 
 Move = tuple[tuple[int, int], tuple[int, int]]   # ((from_row, from_col), (to_row, to_col))
 

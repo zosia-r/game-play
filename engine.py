@@ -19,7 +19,7 @@ Turn order
 import random
 
 import search as search_module
-from constants import PLAYER_W, PLAYER_B, ALGO_ALPHABETA
+from config import PLAYER_W, PLAYER_B, ALGO_ALPHABETA
 from board import board_to_string
 from game import apply_move, check_winner
 from heuristics import evaluate, HEURISTIC_NAMES, pick_random_heuristic, ALL_HEURISTIC_IDS
@@ -31,7 +31,7 @@ def play_game(
     algorithm: str = ALGO_ALPHABETA,
     max_rounds: int = 200,
     verbose: bool = True,
-) -> tuple[str, int, list[list[str]], tuple | None]:
+) -> tuple[str, int, list[list[str]]]:
     """Run a complete game between two Minimax agents.
 
     Each agent randomly selects one of the three heuristics before every move.
@@ -46,11 +46,10 @@ def play_game(
 
     Returns
     -------
-    (winner, rounds, final_board, last_from)
+    (winner, rounds, final_board)
         winner      – 'W' or 'B'
         rounds      – number of half-moves played
         final_board – board state when the game ended
-        last_from   – (row, col) vacated by the final move, for 'o' display
     """
     search_module.nodes_visited = 0   # reset global counter
 
@@ -115,4 +114,5 @@ def play_game(
             print(f"\nRound limit ({max_rounds}) reached.")
 
     winner = check_winner(board) or winner
-    return winner, rounds, board, last_from
+    # TODO: do not return last_from -> edit the board
+    return winner, rounds, board

@@ -56,7 +56,7 @@ import argparse
 
 import search as search_module
 from board import make_initial_board, board_to_string
-from constants import PLAYER_W, ALGO_MINIMAX, ALGO_ALPHABETA
+from config import PLAYER_W, ALGO_MINIMAX, ALGO_ALPHABETA
 from engine import play_game
 
 
@@ -111,7 +111,7 @@ def main() -> None:
     board = make_initial_board(args.rows, args.cols)
 
     start = time.time()
-    winner, rounds, final_board, last_from = play_game(
+    winner, rounds, final_board = play_game(
         board,
         depth      = args.depth,
         algorithm  = args.algorithm,
@@ -122,7 +122,7 @@ def main() -> None:
 
     # ── Standard output ───────────────────────────────────────────────────────
     print()
-    print(board_to_string(final_board, last_from=last_from))
+    print(board_to_string(final_board))
     print()
     winner_label = "Player 1 (W)" if winner == PLAYER_W else "Player 2 (B)"
     print(f"Rounds played: {rounds}.  Winner: {winner_label}.")

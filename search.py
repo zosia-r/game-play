@@ -27,7 +27,7 @@ Russell, S. & Norvig, P. (2003). Artificial Intelligence: A Modern Approach,
 2nd ed., pp. 162-170.
 """
 
-from constants import PLAYER_W, PLAYER_B, WIN_SCORE, LOSS_SCORE, ALGO_MINIMAX, ALGO_ALPHABETA
+from config import PLAYER_W, PLAYER_B, WIN_SCORE, LOSS_SCORE, ALGO_MINIMAX, ALGO_ALPHABETA
 from game import get_moves, apply_move, check_winner
 from heuristics import evaluate
 

@@ -22,7 +22,7 @@ H2 – combined     : weighted mix of piece count, advancement and mobility
 
 import random
 
-from constants import PLAYER_W, PLAYER_B, WIN_SCORE, LOSS_SCORE
+from config import PLAYER_W, PLAYER_B, WIN_SCORE, LOSS_SCORE
 from game import get_moves, check_winner
 
 
