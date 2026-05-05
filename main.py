@@ -54,7 +54,7 @@ import sys
 import time
 import argparse
 
-import search as search_module
+import algorithms as search_module
 from board import make_initial_board, board_to_string
 from config import PLAYER_W, ALGO_MINIMAX, ALGO_ALPHABETA
 from engine import play_game

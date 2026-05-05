@@ -18,7 +18,7 @@ Turn order
 
 import random
 
-import search as search_module
+import algorithms as search_module
 from config import PLAYER_W, PLAYER_B, ALGO_ALPHABETA
 from board import board_to_string
 from game import apply_move, check_winner

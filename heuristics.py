@@ -1,3 +1,4 @@
+# TODO: add more heuristics, make it a class
 """
 Heuristic evaluation functions for Breakthrough.
 
