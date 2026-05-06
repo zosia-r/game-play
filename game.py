@@ -17,7 +17,7 @@ Victory conditions
 - player with no legal moves loses
 """
 
-from config import PLAYER_W, PLAYER_B, EMPTY
+from config import PLAYER_W, PLAYER_B, EMPTY, LAST_MARK
 
 Move = tuple[tuple[int, int], tuple[int, int]]   # ((from_row, from_col), (to_row, to_col))
 

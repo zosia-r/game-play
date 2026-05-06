@@ -7,10 +7,10 @@ heuristics.
 """
 
 import algorithms
-from config import PLAYER_W, PLAYER_B, ALGO_ALPHABETA
+from config import PLAYER_W, PLAYER_B, ALGO_ALPHABETA, LAST_MARK, opponent
 from board import board_to_string
 from game import apply_move, check_winner
-from heuristics import evaluate, HEURISTIC_NAMES, pick_random_heuristic, ALL_HEURISTIC_IDS, opponent
+from heuristics import evaluate, HEURISTIC_NAMES, pick_random_heuristic
 
 
 def play_game(
@@ -36,7 +36,7 @@ def play_game(
     print(f"  Depth      : {depth}")
     print(f"  Algorithm  : {"Minimax" if algorithm == "minimax" else "Alpha-Beta"}")
     print(f"  Heuristics :") 
-    print("\n".join(f"\t- {HEURISTIC_NAMES[i]}" for i in ALL_HEURISTIC_IDS))
+    print("\n".join(f"\t- {HEURISTIC_NAMES[i]}" for i in range(len(HEURISTIC_NAMES))))
     print(f"  First move : Player W")
     print("=" * 100)
     print("\nInitial board:")
@@ -54,35 +54,29 @@ def play_game(
         move = algorithms.choose_move(board, current, depth, heuristic_id, algorithm)
 
         if move is None:
-            winner = PLAYER_B if current == PLAYER_W else PLAYER_W
-            if verbose:
-                label = "W" if current == PLAYER_W else "B"
-                print(f"Player {label} has no legal moves – loses.")
+            winner = opponent(current)
+            print(f"Player {current} has no legal moves – loses.")
             break
 
         (fr, fc), (tr, tc) = move
-        board     = apply_move(board, move)
-        last_from = (fr, fc)
-        rounds   += 1
+        board = apply_move(board, move)
+        rounds += 1
 
         if verbose:
-            label = "W" if current == PLAYER_W else "B"
-            h_name = HEURISTIC_NAMES[heuristic_id].split()[0]   # short label
+            h_name = HEURISTIC_NAMES[heuristic_id].split()[0]
             print(
-                f"Round {rounds:3d}  |  Player {label}  "
+                f"Round {rounds:3d}  |  Player {current}  "
                 f"|  ({fr},{fc}) -> ({tr},{tc})  "
                 f"|  heuristic: {h_name}"
             )
 
-        current = PLAYER_B if current == PLAYER_W else PLAYER_W
+        current = opponent(current)
 
     else:
-        # Round limit – break tie with heuristic score
-        score  = evaluate(board, PLAYER_W, pick_random_heuristic())
-        winner = PLAYER_W if score >= 0 else PLAYER_B
-        if verbose:
-            print(f"\nRound limit ({max_rounds}) reached.")
+        # Round limit – tie
+        winner = None
+        print(f"\nRound limit ({max_rounds}) reached.")
 
-    winner = check_winner(board) or winner
-    # TODO: do not return last_from -> edit the board
+    
+    board[fr][fc] = LAST_MARK
     return winner, rounds, board

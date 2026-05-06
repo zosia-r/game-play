@@ -2,18 +2,12 @@
 Search algorithms: Minimax & Alpha-Beta.
 """
 
-from config import PLAYER_W, PLAYER_B, WIN_SCORE, LOSS_SCORE, ALGO_MINIMAX, ALGO_ALPHABETA
+from config import PLAYER_W, PLAYER_B, WIN_SCORE, LOSS_SCORE, ALGO_MINIMAX, ALGO_ALPHABETA, opponent
 from game import get_moves, apply_move, check_winner
 from heuristics import evaluate
 
 # Incremented on every node expansion; reset before each game.
 nodes_visited: int = 0
-
-
-### Helpers
-
-def opponent(player: str) -> str:
-    return PLAYER_B if player == PLAYER_W else PLAYER_W
 
 
 ### Plain Minimax

@@ -1,53 +1,17 @@
 """
-Breakthrough – command-line entry point.
+CLI entry point.
 
-Usage
------
-  python main.py [options]
+Usage:  python main.py [options]
 
-Options
--------
+Options:
   --rows N, -r N        Number of board rows                 (default: 8)
   --cols M, -c M        Number of board columns              (default: 8)
   --depth D, -d D       Search depth limit                   (default: 3)
   --algorithm {minimax,alphabeta}, -a {minimax,alphabeta}
                         Search algorithm to use              (default: alphabeta)
   --max-rounds R        Round limit before forced stop       (default: 200)
-  --quiet, -q           Print only the final board and result
+  --quiet, -q           Limit output
 
-Heuristics
-----------
-  On every move each player independently picks one of three heuristics at random:
-    H0 – piece count
-    H1 – advancement (forward progress)
-    H2 – combined (piece count + advancement + mobility)
-
-Board orientation
------------------
-  Row 0 is printed at the top.
-  W (Player 1) starts on the bottom two rows and moves upward; moves first.
-  B (Player 2) starts on the top two rows and moves downward.
-
-Performance note
-----------------
-  Plain Minimax explores the full tree: O(b^d).
-  Alpha-beta reduces this to O(b^(d/2)) in the best case.
-  On an 8×8 board a depth of 2-3 is practical for alpha-beta;
-  plain Minimax at depth > 2 is very slow.
-
-Standard output
----------------
-  Move-by-move log (unless --quiet), final board and result.
-
-Standard error
---------------
-  Total decision-tree nodes visited and wall-clock runtime.
-
-Examples
---------
-  python main.py
-  python main.py --rows 6 --cols 8 --depth 3 --algorithm alphabeta
-  python main.py --algorithm minimax --depth 2 --quiet
 """
 
 import sys
@@ -104,9 +68,39 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def validate_arguments(args) -> None:
+    """Validate user-provided arguments. Exit with error if validation fails."""
+    errors = []
+    
+    # Validate rows
+    if args.rows < 4:
+        errors.append(f"--rows must be at least 4 (minimum 2 rows per player), got {args.rows}")
+    
+    # Validate cols
+    if args.cols < 1:
+        errors.append(f"--cols must be at least 1, got {args.cols}")
+    
+    # Validate depth
+    if args.depth < 1:
+        errors.append(f"--depth must be at least 1, got {args.depth}")
+    
+    # Validate max-rounds
+    if args.max_rounds < 1:
+        errors.append(f"--max-rounds must be at least 1, got {args.max_rounds}")
+    
+    if errors:
+        print("Error: Invalid arguments:", file=sys.stderr)
+        for error in errors:
+            print(f"  • {error}", file=sys.stderr)
+        sys.exit(1)
+
+
 def main() -> None:
     parser = build_parser()
     args   = parser.parse_args()
+    
+    # Validate arguments
+    validate_arguments(args)
 
     board = make_initial_board(args.rows, args.cols)
 

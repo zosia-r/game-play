@@ -1,5 +1,5 @@
 """
-Configuration constants for the game.
+Configuration for the game.
 """
 
 PLAYER_W   = 'W'
@@ -13,3 +13,6 @@ LOSS_SCORE = -1_000_000
 # Search algorithm identifiers
 ALGO_MINIMAX   = 'minimax'
 ALGO_ALPHABETA = 'alphabeta'
+
+def opponent(player: str) -> str:
+    return PLAYER_B if player == PLAYER_W else PLAYER_W
