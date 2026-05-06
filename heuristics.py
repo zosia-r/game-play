@@ -18,10 +18,14 @@ Available heuristics
 --------------------
 H0 – piece_count  : difference in total piece counts
 H1 – advancement  : sum of forward progress of all pieces
-H2 – combined     : weighted mix of piece count, advancement and mobility
+H2 - mobility     : number of legal moves available to the player
+H3 – combined     : weighted mix of piece count, advancement and mobility
+H4 - capture_potential : number of opponent pieces that can be captured in the next move
+H5 - passed_pieces : number of pieces with a clear path to the goal row (no opponent pieces blocking)
 """
 
 import random
+from typing import Callable
 
 from config import PLAYER_W, PLAYER_B, WIN_SCORE, LOSS_SCORE
 from game import get_moves, check_winner
@@ -67,7 +71,7 @@ def heuristic_advancement(board: list[list[str]], player: str) -> float:
 
 
 def heuristic_combined(board: list[list[str]], player: str) -> float:
-    """H2: Weighted combination of piece count, advancement and mobility.
+    """H3: Weighted combination of piece count, advancement and mobility.
 
     Weights:
       2.0 × piece-count difference
@@ -98,19 +102,83 @@ def heuristic_combined(board: list[list[str]], player: str) -> float:
     )
     return score if player == PLAYER_W else -score
 
+def heuristic_mobility(board: list[list[str]], player: str) -> float:
+    """H2: Difference in the number of legal moves available to the player.
+
+    A positive value means *player* has more tactical options than the opponent.
+    Encourages positions with greater mobility and flexibility.
+    """
+    w_mob = len(get_moves(board, PLAYER_W))
+    b_mob = len(get_moves(board, PLAYER_B))
+    score = w_mob - b_mob
+    return score if player == PLAYER_W else -score
+
+def heuristic_capture_potential(board: list[list[str]], player: str) -> float:
+    """H4: Number of opponent pieces that can be captured in the next move.
+
+    A positive value means *player* has more immediate capture opportunities than the opponent.
+    Encourages aggressive play and tactical awareness.
+    """
+    opponent = PLAYER_B if player == PLAYER_W else PLAYER_W
+    capture_count = 0
+
+    for r, row in enumerate(board):
+        for c, cell in enumerate(row):
+            if cell == player:
+                # Check potential captures in all four diagonal directions
+                for dr, dc in [(-1, -1), (-1, 1), (1, -1), (1, 1)]:
+                    nr, nc = r + dr, c + dc
+                    if 0 <= nr < len(board) and 0 <= nc < len(board[0]):
+                        if board[nr][nc] == opponent:
+                            capture_count += 1
+
+    return capture_count
+
+def heuristic_passed_pieces(board: list[list[str]], player: str) -> float:
+    """H5: Count of pieces with clear path to promotion (no opponent in their column).
+    
+    A passed piece is guaranteed to promote if it reaches the goal row,
+    making them significantly more valuable strategically.
+    """
+    opponent = PLAYER_B if player == PLAYER_W else PLAYER_W
+    rows, cols = len(board), len(board[0])
+    w_passed = b_passed = 0
+    
+    for c in range(cols):
+        w_has_opp = b_has_opp = False
+        for r in range(rows):
+            if board[r][c] == opponent:
+                if player == PLAYER_W:
+                    b_has_opp = True
+                else:
+                    w_has_opp = True
+            elif board[r][c] == player:
+                if player == PLAYER_W and not b_has_opp:
+                    w_passed += 1
+                elif player == PLAYER_B and not w_has_opp:
+                    b_passed += 1
+    
+    score = w_passed - b_passed
+    return score if player == PLAYER_W else -score
 
 # ── Registry ─────────────────────────────────────────────────────────────────
 
-HEURISTICS: dict[int, callable] = {
+HEURISTICS: dict[int, Callable[[list[list[str]], str], float]] = {
     0: heuristic_piece_count,
     1: heuristic_advancement,
-    2: heuristic_combined,
+    2: heuristic_mobility,
+    3: heuristic_combined,
+    4: heuristic_capture_potential,
+    5: heuristic_passed_pieces,
 }
 
 HEURISTIC_NAMES: dict[int, str] = {
     0: "H0 – piece count",
     1: "H1 – advancement",
-    2: "H2 – combined (piece count + advancement + mobility)",
+    2: "H2 – mobility",
+    3: "H3 – combined (piece count + advancement + mobility)",
+    4: "H4 – capture potential",
+    5: "H5 – passed pieces"
 }
 
 ALL_HEURISTIC_IDS: list[int] = list(HEURISTICS.keys())
