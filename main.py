@@ -27,7 +27,7 @@ from engine import play_game
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="breakthrough",
-        description="Breakthrough – Minimax / alpha-beta with randomised per-move heuristics",
+        description="Breakthrough - Minimax / alpha-beta with randomised per-move heuristics",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
@@ -46,7 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--depth", "-d", type=int, default=3,
-        help="Search depth limit (default: 3; for plain minimax keep ≤ 2 on 8×8)",
+        help="Search depth limit (default: 3; for plain minimax keep ≤ 2 on 8x8)",
     )
     parser.add_argument(
         "--algorithm", "-a",
@@ -69,29 +69,24 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def validate_arguments(args) -> None:
-    """Validate user-provided arguments. Exit with error if validation fails."""
     errors = []
     
-    # Validate rows
     if args.rows < 4:
         errors.append(f"--rows must be at least 4 (minimum 2 rows per player), got {args.rows}")
     
-    # Validate cols
     if args.cols < 1:
         errors.append(f"--cols must be at least 1, got {args.cols}")
     
-    # Validate depth
     if args.depth < 1:
         errors.append(f"--depth must be at least 1, got {args.depth}")
     
-    # Validate max-rounds
     if args.max_rounds < 1:
         errors.append(f"--max-rounds must be at least 1, got {args.max_rounds}")
     
     if errors:
         print("Error: Invalid arguments:", file=sys.stderr)
         for error in errors:
-            print(f"  • {error}", file=sys.stderr)
+            print(f"  {error}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -99,7 +94,6 @@ def main() -> None:
     parser = build_parser()
     args   = parser.parse_args()
     
-    # Validate arguments
     validate_arguments(args)
 
     board = make_initial_board(args.rows, args.cols)
@@ -114,14 +108,14 @@ def main() -> None:
     )
     elapsed = time.time() - start
 
-    # ── Standard output ───────────────────────────────────────────────────────
+    # Std out
     print()
     print(board_to_string(final_board))
     print()
-    winner_label = "Player 1 (W)" if winner == PLAYER_W else "Player 2 (B)"
+    winner_label = "Player W" if winner == PLAYER_W else "Player B"
     print(f"Rounds played: {rounds}.  Winner: {winner_label}.")
 
-    # ── Standard error ────────────────────────────────────────────────────────
+    # Std err
     print(f"Decision-tree nodes visited: {search_module.nodes_visited}", file=sys.stderr)
     print(f"Algorithm runtime:           {elapsed:.3f} s",               file=sys.stderr)
 
