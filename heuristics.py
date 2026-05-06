@@ -119,7 +119,7 @@ def heuristic_combined(board: list[list[str]], player: str) -> float:
     return score if player == PLAYER_W else -score
 
 
-# ── Registry ─────────────────────────────────────────────────────────────────
+### Registry
 
 HEURISTICS: dict[int, Callable[[list[list[str]], str], float]] = {
     0: heuristic_piece_count,
@@ -141,6 +141,7 @@ HEURISTIC_NAMES: dict[int, str] = {
 
 ALL_HEURISTIC_IDS: list[int] = list(HEURISTICS.keys())
 
+### Entry points
 
 def pick_random_heuristic() -> int:
     return random.choice(ALL_HEURISTIC_IDS)

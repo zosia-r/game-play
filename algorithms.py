@@ -1,47 +1,22 @@
 """
-Search algorithms for Breakthrough.
-
-Two separate implementations are provided:
-
-1. minimax_plain  – standard Minimax without any pruning.
-   Explores every node in the subtree up to *depth*.
-   Time complexity: O(b^d)  where b = branching factor, d = depth.
-
-2. minimax_alphabeta – Minimax with alpha-beta pruning.
-   Skips subtrees that cannot influence the final decision.
-   Best-case time complexity: O(b^(d/2)) (optimal move ordering).
-   Worst-case: O(b^d) (reverse-optimal ordering).
-   Always returns the same move as plain Minimax.
-
-Both functions share the same signature and are accessed through the
-unified choose_move() entry point, which selects the algorithm by name.
-
-Global counter
---------------
-nodes_visited  – incremented by every call to either search function;
-                 reset by the engine before each root call.
-
-References
-----------
-Russell, S. & Norvig, P. (2003). Artificial Intelligence: A Modern Approach,
-2nd ed., pp. 162-170.
+Search algorithms: Minimax & Alpha-Beta.
 """
 
 from config import PLAYER_W, PLAYER_B, WIN_SCORE, LOSS_SCORE, ALGO_MINIMAX, ALGO_ALPHABETA
 from game import get_moves, apply_move, check_winner
 from heuristics import evaluate
 
-# Incremented on every node expansion; reset externally before a root call.
+# Incremented on every node expansion; reset before each game.
 nodes_visited: int = 0
 
 
-# ── Helper ───────────────────────────────────────────────────────────────────
+### Helpers
 
 def _opponent(player: str) -> str:
     return PLAYER_B if player == PLAYER_W else PLAYER_W
 
 
-# ── 1. Plain Minimax ─────────────────────────────────────────────────────────
+### Plain Minimax
 
 def minimax_plain(
     board: list[list[str]],
@@ -111,7 +86,7 @@ def minimax_plain(
         return best_val, best_move
 
 
-# ── 2. Minimax with Alpha-Beta Pruning ───────────────────────────────────────
+### Minimax with Alpha-Beta
 
 def minimax_alphabeta(
     board: list[list[str]],
@@ -199,7 +174,7 @@ def minimax_alphabeta(
         return best_val, best_move
 
 
-# ── Unified entry point ──────────────────────────────────────────────────────
+### Entry point
 
 def choose_move(
     board: list[list[str]],
