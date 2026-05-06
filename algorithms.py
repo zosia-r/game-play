@@ -12,7 +12,7 @@ nodes_visited: int = 0
 
 ### Helpers
 
-def _opponent(player: str) -> str:
+def opponent(player: str) -> str:
     return PLAYER_B if player == PLAYER_W else PLAYER_W
 
 
@@ -63,7 +63,7 @@ def minimax_plain(
         val = LOSS_SCORE if current_player == root_player else WIN_SCORE
         return val, None
 
-    opp       = _opponent(current_player)
+    opp = opponent(current_player)
     best_move = moves[0]
 
     if maximizing:
@@ -143,7 +143,7 @@ def minimax_alphabeta(
         val = LOSS_SCORE if current_player == root_player else WIN_SCORE
         return val, None
 
-    opp       = _opponent(current_player)
+    opp = opponent(current_player)
     best_move = moves[0]
 
     if maximizing:
