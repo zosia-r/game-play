@@ -2,11 +2,11 @@
 Search algorithms: Minimax & Alpha-Beta.
 """
 
-from config import PLAYER_W, PLAYER_B, WIN_SCORE, LOSS_SCORE, ALGO_MINIMAX, ALGO_ALPHABETA, opponent
+from config import WIN_SCORE, LOSS_SCORE, ALGO_MINIMAX, ALGO_ALPHABETA, opponent
 from game import get_moves, apply_move, check_winner
 from heuristics import evaluate
 
-# Incremented on every node expansion; reset before each game.
+# Incremented on every node expansion, resets before each game.
 nodes_visited: int = 0
 
 
@@ -22,11 +22,10 @@ def minimax_plain(
 ) -> tuple[float, tuple | None]:
     """Standard Minimax without pruning.
 
-    Searches the full game tree to *depth* plies.  Every reachable node is
-    evaluated, making this an exhaustive but slow algorithm.
+    Searches the full game tree until *depth* reached. Every reachable node is
+    evaluated.
 
-    Parameters
-    ----------
+    Parameters:
     board:          Current board state.
     depth:          Remaining plies to search.
     maximizing:     True when it is the root player's turn.
@@ -34,11 +33,10 @@ def minimax_plain(
     root_player:    Player from whose perspective the score is computed.
     heuristic_id:   Evaluation heuristic used at leaf/cutoff nodes.
 
-    Returns
-    -------
+    Returns:
     (score, best_move)
-        score      – minimax value of this node.
-        best_move  – best move found, or None at terminal/leaf nodes.
+        score      - minimax value of this node.
+        best_move  - best move found, or None at terminal/leaf nodes.
     """
     global nodes_visited
     nodes_visited += 1
@@ -48,7 +46,7 @@ def minimax_plain(
     if winner is not None:
         return (WIN_SCORE + depth if winner == root_player else LOSS_SCORE - depth), None
 
-    # Depth cutoff – apply heuristic evaluation
+    # Depth cutoff - apply heuristic evaluation
     if depth == 0:
         return evaluate(board, root_player, heuristic_id), None
 
@@ -97,16 +95,7 @@ def minimax_alphabeta(
     Identical in result to minimax_plain but skips branches that cannot
     change the outcome at any ancestor node:
 
-    Alpha cut-off (beta pruning): at a MIN node, if the current value
-        already drops to or below *alpha* (the best the MAX player is
-        guaranteed elsewhere), the remaining siblings are pruned.
-
-    Beta cut-off (alpha pruning): at a MAX node, if the current value
-        already meets or exceeds *beta* (the best the MIN player is
-        guaranteed elsewhere), the remaining siblings are pruned.
-
-    Parameters
-    ----------
+    Parameters:
     board:          Current board state.
     depth:          Remaining plies to search.
     maximizing:     True when it is the root player's turn.
@@ -116,9 +105,10 @@ def minimax_alphabeta(
     alpha:          Lower bound: best score MAX is already guaranteed.
     beta:           Upper bound: best score MIN is already guaranteed.
 
-    Returns
-    -------
+    Returns:
     (score, best_move)
+        score      - minimax value of this node.
+        best_move  - best move found, or None at terminal/leaf nodes.
     """
     global nodes_visited
     nodes_visited += 1
