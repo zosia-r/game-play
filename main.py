@@ -18,7 +18,7 @@ import sys
 import time
 import argparse
 
-import algorithms as search_module
+import algorithms
 from board import make_initial_board, board_to_string
 from config import PLAYER_W, ALGO_MINIMAX, ALGO_ALPHABETA
 from engine import play_game
@@ -116,7 +116,7 @@ def main() -> None:
     print(f"Rounds played: {rounds}.  Winner: {winner_label}.")
 
     # Std err
-    print(f"Decision-tree nodes visited: {search_module.nodes_visited}", file=sys.stderr)
+    print(f"Decision-tree nodes visited: {algorithms.nodes_visited}", file=sys.stderr)
     print(f"Algorithm runtime:           {elapsed:.3f} s",               file=sys.stderr)
 
 

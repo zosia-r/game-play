@@ -134,9 +134,9 @@ HEURISTIC_NAMES: dict[int, str] = {
     0: "H0 – piece count",
     1: "H1 – advancement",
     2: "H2 – mobility",
-    3: "H3 – combined (piece count + advancement + mobility)",
-    4: "H4 – capture potential",
-    5: "H5 – passed pieces"
+    3: "H3 – capture potential",
+    4: "H4 – passed pieces",
+    5: "H5 – combined",
 }
 
 ALL_HEURISTIC_IDS: list[int] = list(HEURISTICS.keys())
